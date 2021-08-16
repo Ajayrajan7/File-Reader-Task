@@ -40,6 +40,7 @@ public class Select{
 				}
 				index=0;
 			}
+			br.close();
 			return outputData;
 		}catch(Exception e){
 			System.out.println(e);
