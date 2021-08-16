@@ -116,6 +116,7 @@ class ReducerUtil {
     public static void initialize(Row row, List<WrappedCondition> TOP){
         ReducerUtil.row = row;
         ReducerUtil.TOP = TOP;
+        LHS = true;
     }
 
     public static boolean parseAllCriterasAndReturnFinalBoolean(){
@@ -138,7 +139,7 @@ class ReducerUtil {
          }
      }
     public static void reset(){
-        LHS = false;
+        LHS = true;
         row = null;
     }
 }
@@ -182,4 +183,4 @@ enum Operator {
     LTE,
     EQU
 }
-// Select s = new Select("User").columns("Id","Name","Password").where("Id",20).and("Name","Ajay").or("Name","Chella");
+// Select s = new Select("User").columns("Id","Name","Password").where("Id",Operator.EQ,20).and("Name",Operator.EQ,"Ajay").or("Name",Operator.EQ,"Chella");
