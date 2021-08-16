@@ -36,7 +36,6 @@ public class Rows{
     }
 
     private void  checkOrderAndArrangeIfNot(String tableName,HashMap<String,Object> map){
-
     	LinkedHashMap<String,Object> finalOrder = new LinkedHashMap<>();
     	LinkedHashMap<String,Class> realOrder = GetTableDetails.tablesVsFieldDetails.get(tableName);
 

@@ -1,5 +1,8 @@
-import java.util.LinkedHashMap;
 import java.util.*;
+
+import javax.sound.midi.Receiver;
+
+import jdk.jfr.Frequency;
 
 public class Select {
    private Criteria criteria = new Criteria();
@@ -24,26 +27,34 @@ public class Select {
    private  void checkIfColumnsAreValid(String[] columns) throws ColumnNotFoundException {
        
    }
-
 }
 
 class Criteria{
-    private List<> criterias = new LinkedList<>();
+    private List<Object> criterias = new LinkedList<>();
+    private List<WrappedCondition> TOP = new LinkedList<>();
     private boolean SWITCH = false;
-    public Criteria where(String key,Object value) throws IllegalStateException{
+    public Criteria where(String key,Operator operator,Comparable value) throws IllegalStateException{
         if(SWITCH) throw new IllegalStateException("Criteria  <where> is called more than once");
         SWITCH = true;
+        TOP.add(new WrappedCondition(
+            new Expression(operator,key,value),ExpressionName.AND
+        ));
         return this;
     }
 
-    public Criteria and(String key,Object value) throws IllegalStateException{
+    public Criteria and(String key,Operator operator,Comparable value) throws IllegalStateException{
         checkSwitchAndThrowException("and");
-
+        TOP.add(new WrappedCondition(
+            new Expression(operator,key,value),ExpressionName.AND
+        ));
         return this;
+
     }
 
-    public Criteria or(String key,Object value) throws IllegalStateException{
-        checkSwitchAndThrowException("or");
+    public Criteria or(String key,Operator operator,Comparable value) throws IllegalStateException{
+        TOP.add(new WrappedCondition(
+            new Expression(operator,key,value),ExpressionName.OR
+        ));
         return this;
     }
 
@@ -53,21 +64,32 @@ class Criteria{
             throw new IllegalStateException("Criteria <"+caller+"> is called before where conditon");
         }
     }
+
+
 }
 
-
 class Expression{  
-    private Operator operator;
-    private Comparable LHS ;
-    private Comparable RHS;
+    private Operator operator; //"Id > 20"
+    private String LHSKEY;
+    private Comparable LHS ;  // The value passed by the user during query construction
 
-    public Expression(Operator operator,Comparable LHS,Comparable RHS){
+    public Expression(Operator operator,String LHSKEY,Comparable LHS){
         this.operator = operator;
         this.LHS = LHS;
-        this.RHS = RHS;
+        this.LHSKEY = LHSKEY;
     }
 
-    public boolean evaluate(){
+    public String getLHSKEY(){
+        return LHSKEY;
+    }
+
+
+    /**
+     * 
+     * @param RHS The actual value from the Row Object
+     * @return boolean
+     */
+    public boolean evaluate(Comparable RHS) {
          switch(operator){
              case GT :
                    return LHS.compareTo(RHS) == 1 ;
@@ -86,21 +108,43 @@ class Expression{
 } 
 
 class ReducerUtil {
+    private static boolean LHS = true;
+    private static Row row;
+    private static List<WrappedCondition> TOP;
+    private static int POSITION = 0;
+
+    public static void initialize(Row row, List<WrappedCondition> TOP){
+        ReducerUtil.row = row;
+        ReducerUtil.TOP = TOP;
+    }
+
     public static boolean parseAllCriterasAndReturnFinalBoolean(){
-        while
+        while((POSITION+1) != TOP.size()){
+            LHS = reduce(LHS,TOP.get(POSITION));
+        }
+        return LHS;
+        
      }
  
      public static boolean reduce(boolean LHS,WrappedCondition RHS){
+         final String USERKEY = RHS.getExpression().getLHSKEY();
          switch(RHS.getExpressionName()){
             case AND :
-                 return LHS &&  RHS.getExpression().evaluate();
+                 return LHS &&  RHS.getExpression().evaluate(row.getColumn(USERKEY));
             case OR :
-                 return LHS ||  RHS.getExpression().evaluate();
+                 return LHS ||  RHS.getExpression().evaluate(row.getColumn(USERKEY));
             default :
                  return false;
          }
      }
+    public static void reset(){
+        LHS = false;
+        row = null;
+    }
 }
+
+
+
 
 class WrappedCondition {
      private Expression expression;
@@ -115,9 +159,15 @@ class WrappedCondition {
          return expressionName;
      }
 
-     public Expression getExpression(){
+    public Expression getExpression(){
         return expression;
     }
+
+    public void setExpression(Expression expression){
+        this.expression=expression;
+    }
+
+
 }
 
 enum ExpressionName{
