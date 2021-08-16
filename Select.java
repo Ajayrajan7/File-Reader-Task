@@ -1,4 +1,5 @@
 import java.util.LinkedHashMap;
+import java.util.*;
 
 public class Select {
    private Criteria criteria = new Criteria();
@@ -27,8 +28,7 @@ public class Select {
 }
 
 class Criteria{
-    private LinkedHashMap<String,Object> criterias = new LinkedHashMap<>();
-    private 
+    private List<> criterias = new LinkedList<>();
     private boolean SWITCH = false;
     public Criteria where(String key,Object value) throws IllegalStateException{
         if(SWITCH) throw new IllegalStateException("Criteria  <where> is called more than once");
@@ -49,7 +49,7 @@ class Criteria{
 
 
     private void checkSwitchAndThrowException(String caller) throws IllegalStateException{
-        if(! SWITCH){
+        if(!SWITCH){
             throw new IllegalStateException("Criteria <"+caller+"> is called before where conditon");
         }
     }
@@ -57,22 +57,79 @@ class Criteria{
 
 
 class Expression{  
-    private ExpressionName expressionName;
-    private String key ;
-    private Object value;
-    public Expression(ExpressionName expressionName,String key,String value){
-        this.expressionName = expressionName;
-        this.key = key;
-        this.value = value;
+    private Operator operator;
+    private Comparable LHS ;
+    private Comparable RHS;
+
+    public Expression(Operator operator,Comparable LHS,Comparable RHS){
+        this.operator = operator;
+        this.LHS = LHS;
+        this.RHS = RHS;
     }
 
-    public boolean evaluate(Expression another){
-         
+    public boolean evaluate(){
+         switch(operator){
+             case GT :
+                   return LHS.compareTo(RHS) == 1 ;
+             case EQU :
+                   return LHS.compareTo(RHS) == 0;
+             case GTE :
+                   return LHS.compareTo(RHS) >= 0;
+             case LTE :
+                   return LHS.compareTo(RHS) <= 0;
+             case LT :
+                   return LHS.compareTo(RHS) < 0; 
+             default :
+                   return false;   
+        }
+    }
+} 
+
+class ReducerUtil {
+    public static boolean parseAllCriterasAndReturnFinalBoolean(){
+        while
+     }
+ 
+     public static boolean reduce(boolean LHS,WrappedCondition RHS){
+         switch(RHS.getExpressionName()){
+            case AND :
+                 return LHS &&  RHS.getExpression().evaluate();
+            case OR :
+                 return LHS ||  RHS.getExpression().evaluate();
+            default :
+                 return false;
+         }
+     }
+}
+
+class WrappedCondition {
+     private Expression expression;
+     private ExpressionName expressionName; //AND OR 
+    
+     public WrappedCondition(Expression expression,ExpressionName expressionName){
+         this.expression = expression;
+         this.expressionName = expressionName;
+     }
+
+     public ExpressionName getExpressionName(){
+         return expressionName;
+     }
+
+     public Expression getExpression(){
+        return expression;
     }
 }
 
 enum ExpressionName{
     AND,
     OR
+}
+
+enum Operator {
+    GT,
+    GTE,
+    LT,
+    LTE,
+    EQU
 }
 // Select s = new Select("User").columns("Id","Name","Password").where("Id",20).and("Name","Ajay").or("Name","Chella");
