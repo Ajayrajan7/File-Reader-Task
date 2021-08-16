@@ -1,51 +1,78 @@
-import java.util.*;
-import java.io.*;
-public class Select{
+import java.util.LinkedHashMap;
 
-	public LinkedHashMap<String,Object> getData(String tableName, String ...args){
+public class Select {
+   private Criteria criteria = new Criteria();
+   private Row r;
+   private String[] columns;
+   private String tablename ;
+   public Select(String tablename){
+          this.tablename = tablename;
+   }
 
-		String path=GetTableDetails.dataPath+"\\"+tableName+".txt";
-		LinkedHashMap<String,Class> realOrder = GetTableDetails.tablesVsFieldDetails.get(tableName);
+   public Criteria columns(String... columns) throws ColumnNotFoundException{
+       checkIfColumnsAreValid(columns);
+       this.columns = columns;
+       return criteria;
+   }
 
-		try{
-			File f = new File(path);
-			BufferedReader br = new BufferedReader(new FileReader(f));
-
-			String line;
-			String[] parts;
-			LinkedHashMap<String,Object> outputData=new LinkedHashMap<>();
-			Set<String> neededCols = new HashSet<String>(Arrays.asList(args));
-			int index=0;
-
-			while((line=br.readLine())!=null){
-				parts=line.split(" ");
-				for(Map.Entry<String,Class> entry:realOrder.entrySet()){
-					if(neededCols.contains(entry.getKey())){
-						if(entry.getValue().toString().equals("class java.lang.String")){
-							parts[index]=parts[index].replaceAll("\\\\s"," ");
-							outputData.put(entry.getKey(),parts[index]);
-						}else if(entry.getValue().toString().equals("class java.lang.Integer")){
-							outputData.put(entry.getKey(),Integer.valueOf(parts[index]));
-						}else if(entry.getValue().toString().equals("class java.lang.Long")){
-							outputData.put(entry.getKey(),Long.valueOf(parts[index]));
-						}else if(entry.getValue().toString().equals("class java.lang.Double")){
-							outputData.put(entry.getKey(),Double.valueOf(parts[index]));
-						}else if(entry.getValue().toString().equals("class java.lang.Float")){
-							outputData.put(entry.getKey(),Float.valueOf(parts[index]));
-						}else if(entry.getValue().toString().equals("class java.lang.Boolean")){
-							outputData.put(entry.getKey(),Boolean.valueOf(parts[index]));
-						}
-					}
-					index++;
-				}
-				index=0;
-			}
-			br.close();
-			return outputData;
-		}catch(Exception e){
-			System.out.println(e);
-		}
-		return null;
-	}
+   /**
+    * Iterate over the columns from the GetTableDetails cache and throw if columns mismatched in given columns
+    * @param columns
+    * @throws ColumnNotFoundException
+    */ 
+   private  void checkIfColumnsAreValid(String[] columns) throws ColumnNotFoundException {
+       
+   }
 
 }
+
+class Criteria{
+    private LinkedHashMap<String,Object> criterias = new LinkedHashMap<>();
+    private 
+    private boolean SWITCH = false;
+    public Criteria where(String key,Object value) throws IllegalStateException{
+        if(SWITCH) throw new IllegalStateException("Criteria  <where> is called more than once");
+        SWITCH = true;
+        return this;
+    }
+
+    public Criteria and(String key,Object value) throws IllegalStateException{
+        checkSwitchAndThrowException("and");
+
+        return this;
+    }
+
+    public Criteria or(String key,Object value) throws IllegalStateException{
+        checkSwitchAndThrowException("or");
+        return this;
+    }
+
+
+    private void checkSwitchAndThrowException(String caller) throws IllegalStateException{
+        if(! SWITCH){
+            throw new IllegalStateException("Criteria <"+caller+"> is called before where conditon");
+        }
+    }
+}
+
+
+class Expression{  
+    private ExpressionName expressionName;
+    private String key ;
+    private Object value;
+    public Expression(ExpressionName expressionName,String key,String value){
+        this.expressionName = expressionName;
+        this.key = key;
+        this.value = value;
+    }
+
+    public boolean evaluate(Expression another){
+         
+    }
+}
+
+enum ExpressionName{
+    AND,
+    OR
+}
+// Select s = new Select("User").columns("Id","Name","Password").where("Id",20).and("Name","Ajay").or("Name","Chella");

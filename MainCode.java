@@ -26,7 +26,7 @@ class MainCode{
 			// r=new Rows("log_details",list);
 			// r.addToTable();
 
-			Select select = new Select();
+			Select_ select = new Select_();
 			LinkedHashMap<String,Object> data=select.getData("users","user_id","name","email");
 			System.out.println(data);
 		}catch(Exception e){
