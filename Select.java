@@ -129,11 +129,12 @@ class ReducerUtil {
  
      public static boolean reduce(boolean LHS,WrappedCondition RHS){
          final String USERKEY = RHS.getExpression().getLHSKEY();
+         final boolean RHSSTATUS = RHS.getExpression().evaluate(row.getColumn(USERKEY));
          switch(RHS.getExpressionName()){
             case AND :
-                 return LHS &&  RHS.getExpression().evaluate(row.getColumn(USERKEY));
+                 return LHS && RHSSTATUS;
             case OR :
-                 return LHS ||  RHS.getExpression().evaluate(row.getColumn(USERKEY));
+                 return LHS || RHSSTATUS;
             default :
                  return false;
          }
