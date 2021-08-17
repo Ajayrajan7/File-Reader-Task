@@ -1,9 +1,4 @@
 import java.util.*;
-
-import javax.sound.midi.Receiver;
-
-import jdk.jfr.Frequency;
-
 public class Select {
    private Criteria criteria = new Criteria();
    private Row r;
@@ -18,7 +13,7 @@ public class Select {
        this.columns = columns;
        return criteria;
    }
-
+   
    /**
     * Iterate over the columns from the GetTableDetails cache and throw if columns mismatched in given columns
     * @param columns
@@ -120,6 +115,7 @@ class ReducerUtil {
     }
 
     public static boolean parseAllCriterasAndReturnFinalBoolean(){
+        if(TOP.size()==0) return LHS;
         while((POSITION+1) != TOP.size()){
             LHS = reduce(LHS,TOP.get(POSITION));
         }
